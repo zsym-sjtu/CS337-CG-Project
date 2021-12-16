@@ -99,15 +99,36 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
     };
     // Metaball field radii of max influence
     float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25 };
+
+    //#if N_METABALLS == 10
+    //float3 keyFrameCenters[N_METABALLS][2] =
+    //{
+    //    { float3(-0.5, 0, 0),float3(0, 0.5, 0) },
+    //    { float3(0.7, 0, 0), float3(-0.7, 0, 0) },
+    //    { float3(0, -0.7, 0),float3(0, 0.3, 0) },
+    //    { float3(0, 0.1, 0), float3(0, -0.6, 0) },
+    //    { float3(0, 0, 0),   float3(0, 0, 1) },
+    //    { float3(0, 0, 0.3),float3(0.6, 0.2, 0) },
+    //    { float3(0, 0, 0.3), float3(0.2, 0, 0) },
+    //    { float3(0, 0.3, 0),float3(-0.5, 0.3, 0) },
+    //    { float3(0, -0.1, 0.2), float3(0, 0.6, 0) },
+    //    { float3(1, 0, 0),   float3(0, 0, 0.1) }
+    //};
+    //// Metaball field radii of max influence
+    //float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25, 0.35, 0.35, 0.35, 0.35, 0.25 };
+
 #else
     float3 keyFrameCenters[N_METABALLS][2] =
     {
-        { float3(-0.3, -0.3, -0.4),float3(0.3,-0.3,-0.0) },
-        { float3(0.0, -0.2, 0.5), float3(0.0, 0.4, 0.5) },
-        { float3(0.4,0.4, 0.4), float3(-0.4, 0.2, -0.4) }
+        //{ float3(-0.3, -0.3, -0.4),float3(0.3,-0.3,-0.0) },
+        //{ float3(0.0, -0.2, 0.5), float3(0.0, 0.4, 0.5) },
+        //{ float3(0.4,0.4, 0.4), float3(-0.4, 0.2, -0.4) }
+        { float3(0.0, 0.0, 0.0), float3(1.0, 0.0, 0.0) },
+        { float3(0.0, 0.0, 0.0), float3(0.0, 1.0, 0.0) },
+        { float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 1.0) }
     };
     // Metaball field radii of max influence
-    float radii[N_METABALLS] = { 0.45, 0.55, 0.45 };
+    float radii[N_METABALLS] = { 0.40, 0.50, 0.60 };
 #endif
 
     // Calculate animated metaball center positions.

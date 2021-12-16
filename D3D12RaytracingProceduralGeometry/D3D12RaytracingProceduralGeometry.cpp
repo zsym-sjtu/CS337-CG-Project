@@ -209,18 +209,6 @@ void D3D12RaytracingProceduralGeometry::InitializeScene()
             SetAttributes(offset + Metaballs, ChromiumReflectance, 1);
             offset += VolumetricPrimitive::Count;
         }
-
-        // Signed distance primitives.
-        {
-            using namespace SignedDistancePrimitive;
-            SetAttributes(offset + MiniSpheres, green);
-            SetAttributes(offset + IntersectedRoundCube, green);
-            SetAttributes(offset + SquareTorus, ChromiumReflectance, 1);
-            SetAttributes(offset + TwistedTorus, yellow, 0, 1.0f, 0.7f, 50, 0.5f );
-            SetAttributes(offset + Cog, yellow, 0, 1.0f, 0.1f, 2);
-            SetAttributes(offset + Cylinder, red);
-            SetAttributes(offset + FractalPyramid, green, 0, 1, 0.1f, 4, 0.8f);
-        }
     }
 
     // Setup camera.
