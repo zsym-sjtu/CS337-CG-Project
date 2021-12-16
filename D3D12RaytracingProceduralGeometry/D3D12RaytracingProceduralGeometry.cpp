@@ -135,7 +135,7 @@ void D3D12RaytracingProceduralGeometry::UpdateAABBPrimitiveAttributes(float anim
     // Analytic primitives.
     {
         using namespace AnalyticPrimitive;
-        SetTransformForAABB(offset + AABB, mScale15y, mIdentity);
+        //**test**SetTransformForAABB(offset + AABB, mScale15y, mIdentity);
         SetTransformForAABB(offset + Spheres, mScale15, mRotation);
         offset += AnalyticPrimitive::Count;
     }
@@ -198,7 +198,7 @@ void D3D12RaytracingProceduralGeometry::InitializeScene()
         // Analytic primitives.
         {
             using namespace AnalyticPrimitive;
-            SetAttributes(offset + AABB, red);
+            //SetAttributes(offset + AABB, red);//**test**
             SetAttributes(offset + Spheres, ChromiumReflectance, 1);
             offset += AnalyticPrimitive::Count;
         }
@@ -589,7 +589,7 @@ void D3D12RaytracingProceduralGeometry::BuildProceduralGeometryAABBs()
         // Analytic primitives.
         {
             using namespace AnalyticPrimitive;
-            m_aabbs[offset + AABB] = InitializeAABB(XMINT3(3, 0, 0), XMFLOAT3(2, 3, 2));
+            //**test**m_aabbs[offset + AABB] = InitializeAABB(XMINT3(3, 0, 0), XMFLOAT3(2, 3, 2));
             m_aabbs[offset + Spheres] = InitializeAABB(XMFLOAT3(2.25f, 0, 0.75f), XMFLOAT3(3, 3, 3));
             offset += AnalyticPrimitive::Count;
         }
