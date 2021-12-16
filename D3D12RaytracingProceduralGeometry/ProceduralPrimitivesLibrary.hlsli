@@ -31,18 +31,19 @@
 // AABB local space dimensions: <-1,1>.
 bool RayAnalyticGeometryIntersectionTest(in Ray ray, in AnalyticPrimitive::Enum analyticPrimitive, out float thit, out ProceduralPrimitiveAttributes attr)
 {
-    float3 aabb[2] = {
-        float3(-1,-1,-1),
-        float3(1,1,1)
-    };
-    float tmax;
+    //float3 aabb[2] = {
+    //    float3(-1,-1,-1),
+    //    float3(1,1,1)
+    //};
+    //float tmax;
 
-    switch (analyticPrimitive)
-    {
-    //**test**case AnalyticPrimitive::AABB: return RayAABBIntersectionTest(ray, aabb, thit, attr);
-    case AnalyticPrimitive::Spheres: return RaySpheresIntersectionTest(ray, thit, attr);
-    default: return false;
-    }
+    //switch (analyticPrimitive)
+    //{
+    //default: return false;
+    //}//**test**
+
+    return false;
+
 }
 
 // Analytic geometry intersection test.

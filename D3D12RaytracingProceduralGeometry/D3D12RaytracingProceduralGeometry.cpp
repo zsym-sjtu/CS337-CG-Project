@@ -132,13 +132,6 @@ void D3D12RaytracingProceduralGeometry::UpdateAABBPrimitiveAttributes(float anim
     };
     
     UINT offset = 0;
-    // Analytic primitives.
-    {
-        using namespace AnalyticPrimitive;
-        //**test**SetTransformForAABB(offset + AABB, mScale15y, mIdentity);
-        SetTransformForAABB(offset + Spheres, mScale15, mRotation);
-        offset += AnalyticPrimitive::Count;
-    }
 
     // Volumetric primitives.
     {
@@ -182,13 +175,6 @@ void D3D12RaytracingProceduralGeometry::InitializeScene()
         XMFLOAT4 yellow = XMFLOAT4(1.0f, 1.0f, 0.5f, 1.0f);
         
         UINT offset = 0;
-        // Analytic primitives.
-        {
-            using namespace AnalyticPrimitive;
-            //SetAttributes(offset + AABB, red);//**test**
-            SetAttributes(offset + Spheres, ChromiumReflectance, 1);
-            offset += AnalyticPrimitive::Count;
-        }
 
         // Volumetric primitives.
         {
@@ -573,21 +559,12 @@ void D3D12RaytracingProceduralGeometry::BuildProceduralGeometryAABBs()
         m_aabbs.resize(IntersectionShaderType::TotalPrimitiveCount);
         UINT offset = 0;
 
-        // Analytic primitives.
-        {
-            using namespace AnalyticPrimitive;
-            //**test**m_aabbs[offset + AABB] = InitializeAABB(XMINT3(3, 0, 0), XMFLOAT3(2, 3, 2));
-            m_aabbs[offset + Spheres] = InitializeAABB(XMFLOAT3(2.25f, 0, 0.75f), XMFLOAT3(3, 3, 3));
-            offset += AnalyticPrimitive::Count;
-        }
-
         // Volumetric primitives.
         {
             using namespace VolumetricPrimitive;
             m_aabbs[offset + Metaballs] = InitializeAABB(XMINT3(0, 0, 0), XMFLOAT3(3, 3, 3));
             offset += VolumetricPrimitive::Count;
         }
-
 
         AllocateUploadBuffer(device, m_aabbs.data(), m_aabbs.size()*sizeof(m_aabbs[0]), &m_aabbBuffer.resource);
     }

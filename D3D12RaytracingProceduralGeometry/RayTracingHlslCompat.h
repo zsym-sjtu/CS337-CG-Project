@@ -151,10 +151,7 @@ static const float InShadowRadiance = 0.35f;
 
 namespace AnalyticPrimitive {
     enum Enum {
-        //AABB = 0,
-        //Spheres,//**test**
-        Spheres = 0,
-        Count
+        Count = 0
     };
 }
 
