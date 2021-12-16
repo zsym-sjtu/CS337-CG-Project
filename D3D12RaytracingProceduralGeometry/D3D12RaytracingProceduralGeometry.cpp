@@ -146,19 +146,6 @@ void D3D12RaytracingProceduralGeometry::UpdateAABBPrimitiveAttributes(float anim
         SetTransformForAABB(offset + Metaballs, mScale15, mRotation);
         offset += VolumetricPrimitive::Count;
     }
-
-    // Signed distance primitives.
-    {
-        using namespace SignedDistancePrimitive;
-
-        SetTransformForAABB(offset + MiniSpheres, mIdentity, mIdentity);
-        SetTransformForAABB(offset + IntersectedRoundCube, mIdentity, mIdentity);
-        SetTransformForAABB(offset + SquareTorus, mScale15, mIdentity);
-        SetTransformForAABB(offset + TwistedTorus, mIdentity, mRotation);
-        SetTransformForAABB(offset + Cog, mIdentity, mRotation);
-        SetTransformForAABB(offset + Cylinder, mScale15y, mIdentity);
-        SetTransformForAABB(offset + FractalPyramid, mScale3, mIdentity);
-    }
 }
 
 // Initialize scene rendering parameters.
@@ -601,17 +588,7 @@ void D3D12RaytracingProceduralGeometry::BuildProceduralGeometryAABBs()
             offset += VolumetricPrimitive::Count;
         }
 
-        // Signed distance primitives.
-        {
-            using namespace SignedDistancePrimitive;
-            m_aabbs[offset + MiniSpheres] = InitializeAABB(XMINT3(2, 0, 0), XMFLOAT3(2, 2, 2));
-            m_aabbs[offset + TwistedTorus] = InitializeAABB(XMINT3(0, 0, 1), XMFLOAT3(2, 2, 2));
-            m_aabbs[offset + IntersectedRoundCube] = InitializeAABB(XMINT3(0, 0, 2), XMFLOAT3(2, 2, 2));
-            m_aabbs[offset + SquareTorus] = InitializeAABB(XMFLOAT3(0.75f, -0.1f, 2.25f), XMFLOAT3(3, 3, 3));
-            m_aabbs[offset + Cog] = InitializeAABB(XMINT3(1, 0, 0), XMFLOAT3(2, 2, 2));
-            m_aabbs[offset + Cylinder] = InitializeAABB(XMINT3(0, 0, 3), XMFLOAT3(2, 3, 2));
-            m_aabbs[offset + FractalPyramid] = InitializeAABB(XMINT3(2, 0, 2), XMFLOAT3(6, 6, 6));
-        }
+
         AllocateUploadBuffer(device, m_aabbs.data(), m_aabbs.size()*sizeof(m_aabbs[0]), &m_aabbBuffer.resource);
     }
 }
