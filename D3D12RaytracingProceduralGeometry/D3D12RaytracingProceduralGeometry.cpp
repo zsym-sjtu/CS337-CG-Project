@@ -114,7 +114,7 @@ void D3D12RaytracingProceduralGeometry::UpdateAABBPrimitiveAttributes(float anim
     XMMATRIX mScale2 = XMMatrixScaling(2, 2, 2);
     XMMATRIX mScale3 = XMMatrixScaling(3, 3, 3);
 
-    XMMATRIX mRotation = XMMatrixRotationY(-2 * animationTime);
+    XMMATRIX mRotation = XMMatrixRotationY(-2 * animationTime);//**edit** +:clockwise // -:anti-clockwise
 
     // Apply scale, rotation and translation transforms.
     // The intersection shader tests in this sample work with local space, so here
@@ -188,7 +188,7 @@ void D3D12RaytracingProceduralGeometry::InitializeScene()
     {
         // Initialize the view and projection inverse matrices.
         m_eye = { 0.0f, 5.3f, -17.0f, 1.0f }; 
-        m_at = { 0.0f, 0.0f, 0.0f, 1.0f };
+        m_at = { 0.0f, 0.0f, 0.0f, 100.0f };
         XMVECTOR right = { 1.0f, 0.0f, 0.0f, 0.0f };
 
         XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
@@ -562,7 +562,7 @@ void D3D12RaytracingProceduralGeometry::BuildProceduralGeometryAABBs()
         // Volumetric primitives.
         {
             using namespace VolumetricPrimitive;
-            m_aabbs[offset + Metaballs] = InitializeAABB(XMINT3(0, 0, 0), XMFLOAT3(3, 3, 3));
+            m_aabbs[offset + Metaballs] = InitializeAABB(XMINT3(0, 0, 0), XMFLOAT3(6, 6, 6)); //**edit**(XMINT3(0, 0, 0), XMFLOAT3(3, 3, 3))
             offset += VolumetricPrimitive::Count;
         }
 
