@@ -167,6 +167,46 @@ void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout
     tmax = min(tmax, RayTCurrent());
 }
 
+// **test** by zsym
+void sortMetaballsByDistance(in Ray ray, in UINT nActiveMetaballs, inout Metaball blobs[N_METABALLS], out float centerDistance[N_METABALLS])
+{
+#if USE_DYNAMIC_LOOPS
+    for (UINT i = 0; i < nActiveMetaballs; i++)
+#else
+    for (UINT i = 0; i < N_METABALLS; i++)
+#endif
+    {
+        float3 originToMetaballCenter = blobs[i].center - ray.origin;
+        centerDistance[i] = dot(originToMetaballCenter, normalize(ray.direction));
+    }
+
+    // Bubble sort
+#if USE_DYNAMIC_LOOPS
+    for (UINT i = 0; i < nActiveMetaballs - 1; i++)
+#else
+    for (UINT i = 0; i < N_METABALLS - 1; i++)
+#endif
+    {
+#if USE_DYNAMIC_LOOPS
+        for (UINT j = 0; j < nActiveMetaballs - 1 - i; j++)
+#else
+        for (UINT j = 0; j < N_METABALLS - 1 - i; j++)
+#endif
+        {
+            if (centerDistance[j] > centerDistance[j + 1]) {
+                float tmpD = centerDistance[j];
+                centerDistance[j] = centerDistance[j + 1];
+                centerDistance[j + 1] = tmpD;
+
+                Metaball tmpB = blobs[j];
+                blobs[j] = blobs[j + 1];
+                blobs[j + 1] = tmpB;
+            }
+        }
+    }
+}
+
+
 // Test if a ray with RayFlags and segment <RayTMin(), RayTCurrent()> intersects metaball field.
 // The test sphere traces through the metaball field until it hits a threshold isosurface. 
 bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrimitiveAttributes attr, in float elapsedTime)
