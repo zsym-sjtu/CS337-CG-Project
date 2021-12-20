@@ -30,6 +30,16 @@ struct Metaball
     float  radius;
 };
 
+//**test**zsym
+struct Group
+{
+    int head;
+    int TAIL;
+    float grpTmin;
+    float grpTmax;
+};
+
+
 // Calculate a magnitude of an influence from a Metaball charge.
 // Return metaball potential range: <0,1>
 // mbRadius - largest possible area of metaball contribution - AKA its bounding sphere.
@@ -142,7 +152,8 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
 
 // Find all metaballs that ray intersects.
 // The passed in array is sorted to the first nActiveMetaballs.
-void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout Metaball blobs[N_METABALLS], out UINT nActiveMetaballs)
+void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout Metaball blobs[N_METABALLS], out UINT nActiveMetaballs, \
+    out float blobsTmin[N_METABALLS], out float blobsTmax[N_METABALLS])
 {
     // Find the entry and exit points for all metaball bounding spheres combined.
     tmin = INFINITY;
@@ -157,9 +168,14 @@ void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout
             tmin = min(_thit, tmin);
             tmax = max(_tmax, tmax);
 #if LIMIT_TO_ACTIVE_METABALLS
-            blobs[nActiveMetaballs++] = blobs[i];
+            blobs[nActiveMetaballs] = blobs[i];
+            blobsTmin[nActiveMetaballs] = _thit;
+            blobsTmax[nActiveMetaballs] = _tmax;
+            nActiveMetaballs++;
 #else
             nActiveMetaballs = N_METABALLS;
+            blobsTmin[i] = _thit;
+            blobsTmax[i] = _tmax;
 #endif
         }
     }
@@ -167,40 +183,60 @@ void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout
     tmax = min(tmax, RayTCurrent());
 }
 
-// **test** by zsym
-void sortMetaballsByDistance(in Ray ray, in UINT nActiveMetaballs, inout Metaball blobs[N_METABALLS], out float centerDistance[N_METABALLS])
+//**test** by zsym
+void sortMetaballsByDistance(in Ray ray, in UINT nActiveMetaballs, inout Metaball blobs[N_METABALLS], out float centerDistance[N_METABALLS], \
+    inout float blobsTmin[N_METABALLS], inout float blobsTmax[N_METABALLS])
 {
 #if USE_DYNAMIC_LOOPS
-    for (UINT i = 0; i < nActiveMetaballs; i++)
+    for (UINT k = 0; k < nActiveMetaballs; k++)
 #else
-    for (UINT i = 0; i < N_METABALLS; i++)
+    for (UINT k = 0; k < N_METABALLS; k++)
 #endif
     {
-        float3 originToMetaballCenter = blobs[i].center - ray.origin;
-        centerDistance[i] = dot(originToMetaballCenter, normalize(ray.direction));
+        float3 originToMetaballCenter = blobs[k].center - ray.origin;
+        centerDistance[k] = dot(originToMetaballCenter, normalize(ray.direction));
     }
 
     // Bubble sort
+//#if USE_DYNAMIC_LOOPS
+//    for (UINT i = 0; i < nActiveMetaballs - 1; i++)
+//#else
+//    for (UINT i = 0; i < N_METABALLS - 1; i++)
+//#endif
+//    {
+//#if USE_DYNAMIC_LOOPS
+//        for (UINT j = 0; j < nActiveMetaballs - 1 - i; j++)
+//#else
+//        for (UINT j = 0; j < N_METABALLS - 1 - i; j++)
+//#endif
+
 #if USE_DYNAMIC_LOOPS
     for (UINT i = 0; i < nActiveMetaballs - 1; i++)
-#else
-    for (UINT i = 0; i < N_METABALLS - 1; i++)
-#endif
     {
-#if USE_DYNAMIC_LOOPS
         for (UINT j = 0; j < nActiveMetaballs - 1 - i; j++)
 #else
+    for (UINT i = 0; i < N_METABALLS - 1; i++)
+    {
         for (UINT j = 0; j < N_METABALLS - 1 - i; j++)
 #endif
         {
-            if (centerDistance[j] > centerDistance[j + 1]) {
+            if (centerDistance[j] > centerDistance[j + 1])
+            {
                 float tmpD = centerDistance[j];
                 centerDistance[j] = centerDistance[j + 1];
                 centerDistance[j + 1] = tmpD;
 
-                Metaball tmpB = blobs[j];
-                blobs[j] = blobs[j + 1];
-                blobs[j + 1] = tmpB;
+                //Metaball tmpB = blobs[j];
+                //blobs[j] = blobs[j + 1];
+                //blobs[j + 1] = tmpB;
+
+                //float tmpTmin = blobsTmin[j];
+                //blobsTmin[j] = blobsTmin[j + 1];
+                //blobsTmin[j + 1] = tmpTmin;
+
+                //float tmpTmax = blobsTmax[j];
+                //blobsTmax[j] = blobsTmax[j + 1];
+                //blobsTmax[j + 1] = tmpTmax;
             }
         }
     }
@@ -216,7 +252,13 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
     
     float tmin, tmax;   // Ray extents to first and last metaball intersections.
     UINT nActiveMetaballs = 0;  // Number of metaballs's that the ray intersects.
-    FindIntersectingMetaballs(ray, tmin, tmax, blobs, nActiveMetaballs);
+    
+    float blobsTmin[N_METABALLS];
+    float blobsTmax[N_METABALLS];
+    FindIntersectingMetaballs(ray, tmin, tmax, blobs, nActiveMetaballs, blobsTmin, blobsTmax);
+
+    float centerDistance[N_METABALLS];
+    sortMetaballsByDistance(ray, nActiveMetaballs, blobs, centerDistance, blobsTmin, blobsTmax);
 
     UINT MAX_STEPS = 128;
     float t = tmin;

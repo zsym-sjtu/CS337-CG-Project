@@ -102,6 +102,7 @@ void D3D12RaytracingProceduralGeometry::UpdateCameraMatrices()
     m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
 }
 
+//**AABB**
 // Update AABB primite attributes buffers passed into the shader.
 void D3D12RaytracingProceduralGeometry::UpdateAABBPrimitiveAttributes(float animationTime)
 {
