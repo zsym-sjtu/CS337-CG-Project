@@ -34,9 +34,9 @@ struct Metaball
 struct Group
 {
     int head;
-    int TAIL;
-    float grpTmin;
-    float grpTmax;
+    int tail;
+    float near;
+    float far;
 };
 
 
@@ -154,8 +154,10 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
 
 // Find all metaballs that ray intersects.
 // The passed in array is sorted to the first nActiveMetaballs.
-void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout Metaball blobs[N_METABALLS], out UINT nActiveMetaballs, \
-    out float blobsTmin[N_METABALLS], out float blobsTmax[N_METABALLS])
+//**rayt**void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout Metaball blobs[N_METABALLS], out UINT nActiveMetaballs, \
+//    out float blobsTmin[N_METABALLS], out float blobsTmax[N_METABALLS])
+void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout Metaball blobs[N_METABALLS], \
+    inout float centerDistance[N_METABALLS], out UINT nActiveMetaballs)
 {
     // Find the entry and exit points for all metaball bounding spheres combined.
     tmin = INFINITY;
@@ -171,13 +173,14 @@ void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout
             tmax = max(_tmax, tmax);
 #if LIMIT_TO_ACTIVE_METABALLS
             blobs[nActiveMetaballs] = blobs[i];
-            blobsTmin[nActiveMetaballs] = _thit;
-            blobsTmax[nActiveMetaballs] = _tmax;
+            centerDistance[nActiveMetaballs] = centerDistance[i];
+            //blobsTmin[nActiveMetaballs] = _thit;
+            //blobsTmax[nActiveMetaballs] = _tmax;
             nActiveMetaballs++;
 #else
             nActiveMetaballs = N_METABALLS;
-            blobsTmin[i] = _thit;
-            blobsTmax[i] = _tmax;
+            //blobsTmin[i] = _thit;
+            //blobsTmax[i] = _tmax;
 #endif
         }
     }
@@ -274,8 +277,9 @@ void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout
 //}
 
 
+
 //**test** by zsym, this function uses STATIC LOOPS, is called before FindIntersectingMetaballs().
-void sortMetaballsByDistance(in Ray ray, inout Metaball blobs[N_METABALLS], out float centerDistance[N_METABALLS])
+void SortMetaballsByDistance(in Ray ray, inout Metaball blobs[N_METABALLS], out float centerDistance[N_METABALLS])
 {
     for (UINT k = 0; k < N_METABALLS; k++)
     {
@@ -300,6 +304,61 @@ void sortMetaballsByDistance(in Ray ray, inout Metaball blobs[N_METABALLS], out 
     }
 }
 
+//void divideGroups(in centerDistance[N_METABALLS], in float blobsTmin[N_METABALLS], in float blobsTmax[N_METABALLS, \
+//    out Group groups[N_GROUPS]) {}
+
+void DivideGroups(in float centerDistance[N_METABALLS], in Metaball blobs[N_METABALLS], \
+    out Group groups[N_GROUPS], in UINT nActiveMetaballs, out UINT groupNum)
+{
+    groupNum = 0;
+
+    groups[0].head = -1;
+    groups[0].tail = -1;
+    groups[0].near = -1.0;
+    groups[0].far = -1.0;
+
+#if USE_DYNAMIC_LOOPS
+    for (UINT i = 0; i < nActiveMetaballs; i++)
+#else
+    for (UINT i = 0; i < N_METABALLS; i++)
+#endif
+    {
+        // Whether the new blob should be added to current group
+        if ((centerDistance[i] - blobs[i].radius) < groups[groupNum].far)
+        {
+            // Append the new blob into current group
+            groups[groupNum].tail = i;
+            groups[groupNum].far = max(groups[groupNum].far, (centerDistance[i] + blobs[i].radius));
+
+            if ((centerDistance[i] - blobs[i].radius) < groups[groupNum].near)
+            { 
+                // The new blob refreshes the group's `near`
+                groups[groupNum].near = centerDistance[i] - blobs[i].radius;
+
+                while (groupNum > 0)
+                { 
+                    // Whether the new `near` leads to overlapping of former groups
+                    if (groups[groupNum - 1].far > groups[groupNum].near)
+                    { 
+                        // Merge two groups
+                        groups[groupNum - 1].tail = groups[groupNum].tail;
+                        groups[groupNum - 1].far = groups[groupNum].far;
+                        // Decrement group counter
+                        --groupNum;
+                    }
+                }
+            }
+
+            else
+            {
+                // Create a new group
+                //if (groupNum < N_GROUPS)
+            }
+            
+        }
+    }
+}
+
 // Test if a ray with RayFlags and segment <RayTMin(), RayTCurrent()> intersects metaball field.
 // The test sphere traces through the metaball field until it hits a threshold isosurface. 
 bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrimitiveAttributes attr, in float elapsedTime)
@@ -308,15 +367,17 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
     InitializeAnimatedMetaballs(blobs, elapsedTime, 12.0f);
 
     float centerDistance[N_METABALLS];
-    sortMetaballsByDistance(ray, blobs, centerDistance);
+    SortMetaballsByDistance(ray, blobs, centerDistance);
     
     float tmin, tmax;   // Ray extents to first and last metaball intersections.
     UINT nActiveMetaballs = 0;  // Number of metaballs's that the ray intersects.
     
-    float blobsTmin[N_METABALLS];
-    float blobsTmax[N_METABALLS];
-    FindIntersectingMetaballs(ray, tmin, tmax, blobs, nActiveMetaballs, blobsTmin, blobsTmax);
+    FindIntersectingMetaballs(ray, tmin, tmax, blobs, centerDistance, nActiveMetaballs);
 
+    Group groups[N_GROUPS];
+    UINT groupNum = 0;
+    DivideGroups(centerDistance, blobs, groups, nActiveMetaballs, groupNum);
+    //**old**
     //float centerDistance[N_METABALLS];
     //sortMetaballsByDistance0(ray, nActiveMetaballs, blobs, centerDistance, blobsTmin, blobsTmax);
 
