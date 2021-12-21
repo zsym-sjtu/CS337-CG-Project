@@ -33,8 +33,8 @@ struct Metaball
 //**test**zsym
 struct Group
 {
-    int head;
-    int tail;
+    UINT head;
+    UINT tail;
     float near;
     float far;
 };
@@ -95,6 +95,28 @@ float3 CalculateMetaballsNormal(in float3 position, in Metaball blobs[N_METABALL
         CalculateMetaballsPotential(position + float3(0, 0, e), blobs, nActiveMetaballs)));
 }
 
+float CalculateGroupMetaballsPotential(in float3 position, in Metaball blobs[N_METABALLS], UINT head, UINT tail)
+{
+    float sumFieldPotential = 0;
+    for (UINT i = head; i <= tail; ++i)
+    {
+        float dummy;
+        sumFieldPotential += CalculateMetaballPotential(position, blobs[i], dummy);
+    }
+    return sumFieldPotential;
+}
+
+float3 CalculateGroupMetaballsNormal(in float3 position, in Metaball blobs[N_METABALLS], UINT head, UINT tail)
+{
+    float e = 0.5773 * 0.00001;
+    return normalize(float3(
+        CalculateGroupMetaballsPotential(position + float3(-e, 0, 0), blobs, head, tail) -
+        CalculateGroupMetaballsPotential(position + float3(e, 0, 0), blobs, head, tail),
+        CalculateGroupMetaballsPotential(position + float3(0, -e, 0), blobs, head, tail) -
+        CalculateGroupMetaballsPotential(position + float3(0, e, 0), blobs, head, tail),
+        CalculateGroupMetaballsPotential(position + float3(0, 0, -e), blobs, head, tail) -
+        CalculateGroupMetaballsPotential(position + float3(0, 0, e), blobs, head, tail)));
+}
 void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elapsedTime, in float cycleDuration)
 {
 
@@ -381,48 +403,115 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
     //float centerDistance[N_METABALLS];
     //sortMetaballsByDistance0(ray, nActiveMetaballs, blobs, centerDistance, blobsTmin, blobsTmax);
 
-    UINT MAX_STEPS = 128;
-    float t = tmin;
-    float minTStep = (tmax - tmin) / (MAX_STEPS / 1);
-    UINT iStep = 0;
+    //**test**by zsym
+    UINT MAX_STEPS = 64;
 
-    while (iStep++ < MAX_STEPS)
-    {
-        float3 position = ray.origin + t * ray.direction;
-        float fieldPotentials[N_METABALLS];    // Field potentials for each metaball.
-        float sumFieldPotential = 0;           // Sum of all metaball field potentials.
-            
-        // Calculate field potentials from all metaballs.
-#if USE_DYNAMIC_LOOPS
-        for (UINT j = 0; j < nActiveMetaballs; j++)
-#else
-        for (UINT j = 0; j < N_METABALLS; j++)
-#endif
+    for (UINT curGroupIdx = 0; curGroupIdx < groupNum; ++curGroupIdx) {
+        //// if group is out of range...
+        //if ((groups[curGroupIdx].near > RayTCurrent()) || (groups[curGroupIdx].near < RayTMin()))
+        //{
+        //    continue;
+        //}
+
+        // The following code can also handle the situation? Or this is also part of raytracing? (tmin > tmax --> minTStep < 0 --> ?)
+        //float tmin = max(groups[curGroupIdx].near, RayTMin()); //**buggy**
+        //float tmax = min(groups[curGroupIdx].far, RayTCurrent()); //**buggy**
+        float t = tmin;
+        float minTStep = (tmax - tmin) / (MAX_STEPS / 1);
+        UINT iStep = 0;
+
+        while (iStep++ < MAX_STEPS)
         {
-            float distance;
-            fieldPotentials[j] = CalculateMetaballPotential(position, blobs[j], distance);
-            sumFieldPotential += fieldPotentials[j];
-         }
+            float3 position = ray.origin + t * ray.direction;
+            float fieldPotentials[N_METABALLS];    // Field potentials for each metaball.
+            float sumFieldPotential = 0;           // Sum of all metaball field potentials.
 
-        // Field potential threshold defining the isosurface.
-        // Threshold - valid range is (0, 1>, the larger the threshold the smaller the blob.
-        const float Threshold = 0.25f;
-
-        // Have we crossed the isosurface?
-        if (sumFieldPotential >= Threshold)
-        {
-            float3 normal = CalculateMetaballsNormal(position, blobs, nActiveMetaballs);
-            if (IsAValidHit(ray, t, normal))
+            // Calculate field potentials from all metaballs in current group
+            for (UINT i = groups[curGroupIdx].head; i <= groups[curGroupIdx].tail; ++i)
             {
-                thit = t;
-                attr.normal = normal;
-                return true;
+                float distance;
+                fieldPotentials[i] = CalculateMetaballPotential(position, blobs[i], distance);
+                sumFieldPotential += fieldPotentials[i];
             }
+
+//            // Calculate field potentials from all metaballs.
+//#if USE_DYNAMIC_LOOPS
+//            for (UINT j = 0; j < nActiveMetaballs; j++)
+//#else
+//            for (UINT j = 0; j < N_METABALLS; j++)
+//#endif
+//            {
+//                float distance;
+//                fieldPotentials[j] = CalculateMetaballPotential(position, blobs[j], distance);
+//                sumFieldPotential += fieldPotentials[j];
+//            }
+
+            // Field potential threshold defining the isosurface.
+            // Threshold - valid range is (0, 1>, the larger the threshold the smaller the blob.
+            const float Threshold = 0.25f;
+
+            // Have we crossed the isosurface?
+            if (sumFieldPotential >= Threshold)
+            {
+                //float3 normal = CalculateMetaballsNormal(position, blobs, nActiveMetaballs);
+                float3 normal = CalculateGroupMetaballsNormal(position, blobs, groups[curGroupIdx].head, groups[curGroupIdx].tail);
+                if (IsAValidHit(ray, t, normal))
+                {
+                    thit = t;
+                    attr.normal = normal;
+                    return true;
+                }
+            }
+            t += minTStep;
         }
-        t += minTStep;
+
     }
 
     return false;
+//
+//    // Original algorithm
+//    UINT MAX_STEPS = 128;
+//    float t = tmin;
+//    float minTStep = (tmax - tmin) / (MAX_STEPS / 1);
+//    UINT iStep = 0;
+//
+//    while (iStep++ < MAX_STEPS)
+//    {
+//        float3 position = ray.origin + t * ray.direction;
+//        float fieldPotentials[N_METABALLS];    // Field potentials for each metaball.
+//        float sumFieldPotential = 0;           // Sum of all metaball field potentials.
+//            
+//        // Calculate field potentials from all metaballs.
+//#if USE_DYNAMIC_LOOPS
+//        for (UINT j = 0; j < nActiveMetaballs; j++)
+//#else
+//        for (UINT j = 0; j < N_METABALLS; j++)
+//#endif
+//        {
+//            float distance;
+//            fieldPotentials[j] = CalculateMetaballPotential(position, blobs[j], distance);
+//            sumFieldPotential += fieldPotentials[j];
+//         }
+//
+//        // Field potential threshold defining the isosurface.
+//        // Threshold - valid range is (0, 1>, the larger the threshold the smaller the blob.
+//        const float Threshold = 0.25f;
+//
+//        // Have we crossed the isosurface?
+//        if (sumFieldPotential >= Threshold)
+//        {
+//            float3 normal = CalculateMetaballsNormal(position, blobs, nActiveMetaballs);
+//            if (IsAValidHit(ray, t, normal))
+//            {
+//                thit = t;
+//                attr.normal = normal;
+//                return true;
+//            }
+//        }
+//        t += minTStep;
+//    }
+//
+//    return false;
 }
 
 #endif // VOLUMETRICPRIMITIVESLIBRARY_H
