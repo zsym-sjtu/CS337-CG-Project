@@ -310,12 +310,8 @@ void SortMetaballsByDistance(in Ray ray, inout Metaball blobs[N_METABALLS], out 
 void DivideGroups(in float centerDistance[N_METABALLS], in Metaball blobs[N_METABALLS], \
     out Group groups[N_GROUPS], in UINT nActiveMetaballs, out UINT groupNum)
 {
-    groupNum = 0;
-
-    groups[0].head = -1;
-    groups[0].tail = -1;
-    groups[0].near = -1.0;
-    groups[0].far = -1.0;
+    // `groupNum` always equals the index of the group to add new blob to
+    groupNum = -1;
 
 #if USE_DYNAMIC_LOOPS
     for (UINT i = 0; i < nActiveMetaballs; i++)
@@ -324,7 +320,7 @@ void DivideGroups(in float centerDistance[N_METABALLS], in Metaball blobs[N_META
 #endif
     {
         // Whether the new blob should be added to current group
-        if ((centerDistance[i] - blobs[i].radius) < groups[groupNum].far)
+        if ((groupNum >= 0) && (((centerDistance[i] - blobs[i].radius) < groups[groupNum].far) || (groupNum == (N_GROUPS - 1))))
         {
             // Append the new blob into current group
             groups[groupNum].tail = i;
@@ -348,14 +344,18 @@ void DivideGroups(in float centerDistance[N_METABALLS], in Metaball blobs[N_META
                     }
                 }
             }
-
-            else
-            {
-                // Create a new group
-                //if (groupNum < N_GROUPS)
-            }
-            
         }
+
+        // Create a new group
+        else
+        {
+            ++groupNum;
+            groups[groupNum].head = i;
+            groups[groupNum].tail = i;
+            groups[groupNum].near = centerDistance[i] - blobs[i].radius;
+            groups[groupNum].far = centerDistance[i] + blobs[i].radius;
+        }
+            
     }
 }
 
