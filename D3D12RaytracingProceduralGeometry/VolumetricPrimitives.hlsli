@@ -127,17 +127,42 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
 
 
     // Metaball centers at t0 and t1 key frames.
+//#if N_METABALLS == 5
+//    float3 keyFrameCenters[N_METABALLS][2] =
+//    {
+//        { float3(-0.7, 0, 0),float3(0.7,0, 0) },
+//        { float3(0.7 , 0, 0), float3(-0.7, 0, 0) },
+//        { float3(0, -0.7, 0),float3(0, 0.7, 0) },
+//        { float3(0, 0.7, 0), float3(0, -0.7, 0) },
+//        { float3(0, 0, 0),   float3(0, 0, 0) }
+//    };
+//    // Metaball field radii of max influence
+//    float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25 };
+//
 #if N_METABALLS == 5
     float3 keyFrameCenters[N_METABALLS][2] =
     {
-        { float3(-0.7, 0, 0),float3(0.7,0, 0) },
+        { float3(-0.7, 0, 0), float3(0.7,0, 0) },
         { float3(0.7 , 0, 0), float3(-0.7, 0, 0) },
-        { float3(0, -0.7, 0),float3(0, 0.7, 0) },
-        { float3(0, 0.7, 0), float3(0, -0.7, 0) },
-        { float3(0, 0, 0),   float3(0, 0, 0) }
+        { float3(0, -0.7, 0), float3(0, 0.7, 0) },
+        { float3(0, 0, 0), float3(0, 0, 0) },
+        { float3(0, 0, 0.3), float3(0.6, 0.2, 0) }
     };
     // Metaball field radii of max influence
-    float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25 };
+    float radii[N_METABALLS] = { 0.35, 0.35, 0.25, 0.35, 0.4 };
+//
+//#if N_METABALLS == 6
+//    float3 keyFrameCenters[N_METABALLS][2] =
+//    {
+//        { float3(-0.7, 0, 0), float3(0.7,0, 0) },
+//        { float3(0.7 , 0, 0), float3(-0.7, 0, 0) },
+//        { float3(0, -0.7, 0), float3(0, 0.7, 0) },
+//        { float3(0, 0.7, 0), float3(0, -0.7, 0) },
+//        { float3(0, 0, 0), float3(0, 0, 0) },
+//        { float3(0, 0, 0.3), float3(0.6, 0.2, 0) }
+//    };
+//    // Metaball field radii of max influence
+//    float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25, 0.4 };
 
     //#if N_METABALLS == 10
     //float3 keyFrameCenters[N_METABALLS][2] =
@@ -214,7 +239,7 @@ void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout
     tmax = min(tmax, RayTCurrent());
 }
 
-//**test** by zsym, this function uses STATIC LOOPS, is called before FindIntersectingMetaballs().
+// This function uses STATIC LOOPS, is called before FindIntersectingMetaballs().
 void SortMetaballsByDistance(in Ray ray, inout Metaball blobs[N_METABALLS], out float centerDistance[N_METABALLS])
 {
     for (UINT k = 0; k < N_METABALLS; k++)
@@ -325,18 +350,6 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
     UINT MAX_STEPS = 64;
 
     for (UINT curGroupIdx = 0; curGroupIdx < groupNum; ++curGroupIdx) {
-        //// if group is out of range...
-        //if ((groups[curGroupIdx].near > RayTCurrent()) || (groups[curGroupIdx].near < RayTMin()))
-        //{
-        //    continue;
-        //}
-
-        // The following code can also handle the situation? Or this is also part of raytracing? (tmin > tmax --> minTStep < 0 --> ?)
-        //float tmin = max(groups[curGroupIdx].near, RayTMin()); //**buggy**
-        //float tmax = min(groups[curGroupIdx].far, RayTCurrent()); //**buggy**
-        /*float t = tmin;
-        float minTStep = (tmax - tmin) / (MAX_STEPS / 1);*/ //old
-
         float groupTmin = groups[curGroupIdx].tmin;
         float groupTmax = groups[curGroupIdx].tmax;
         float t = groupTmin;
@@ -357,20 +370,8 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
                 sumFieldPotential += fieldPotentials[i];
             }
 
-//            // Calculate field potentials from all metaballs.
-//#if USE_DYNAMIC_LOOPS
-//            for (UINT j = 0; j < nActiveMetaballs; j++)
-//#else
-//            for (UINT j = 0; j < N_METABALLS; j++)
-//#endif
-//            {
-//                float distance;
-//                fieldPotentials[j] = CalculateMetaballPotential(position, blobs[j], distance);
-//                sumFieldPotential += fieldPotentials[j];
-//            }
-
             // Field potential threshold defining the isosurface.
-            // Threshold - valid range is (0, 1>, the larger the threshold the smaller the blob.
+            // Threshold - valid range is (0, 1), the larger the threshold the smaller the blob.
             const float Threshold = 0.25f;
 
             // Have we crossed the isosurface?
@@ -385,56 +386,12 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
                     return true;
                 }
             }
+
             t += minTStep;
         }
-
     }
 
     return false;
-//
-//    // Original algorithm
-//    UINT MAX_STEPS = 128;
-//    float t = tmin;
-//    float minTStep = (tmax - tmin) / (MAX_STEPS / 1);
-//    UINT iStep = 0;
-//
-//    while (iStep++ < MAX_STEPS)
-//    {
-//        float3 position = ray.origin + t * ray.direction;
-//        float fieldPotentials[N_METABALLS];    // Field potentials for each metaball.
-//        float sumFieldPotential = 0;           // Sum of all metaball field potentials.
-//            
-//        // Calculate field potentials from all metaballs.
-//#if USE_DYNAMIC_LOOPS
-//        for (UINT j = 0; j < nActiveMetaballs; j++)
-//#else
-//        for (UINT j = 0; j < N_METABALLS; j++)
-//#endif
-//        {
-//            float distance;
-//            fieldPotentials[j] = CalculateMetaballPotential(position, blobs[j], distance);
-//            sumFieldPotential += fieldPotentials[j];
-//         }
-//
-//        // Field potential threshold defining the isosurface.
-//        // Threshold - valid range is (0, 1>, the larger the threshold the smaller the blob.
-//        const float Threshold = 0.25f;
-//
-//        // Have we crossed the isosurface?
-//        if (sumFieldPotential >= Threshold)
-//        {
-//            float3 normal = CalculateMetaballsNormal(position, blobs, nActiveMetaballs);
-//            if (IsAValidHit(ray, t, normal))
-//            {
-//                thit = t;
-//                attr.normal = normal;
-//                return true;
-//            }
-//        }
-//        t += minTStep;
-//    }
-//
-//    return false;
 }
 
 #endif // VOLUMETRICPRIMITIVESLIBRARY_H
