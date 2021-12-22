@@ -30,7 +30,6 @@ struct Metaball
     float  radius;
 };
 
-//**test**zsym
 struct Group
 {
     UINT head;
@@ -135,8 +134,8 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
     for (UINT i = 0; i < N_METABALLS; ++i)
     {
         float h = float(i) / 8.0;
-        blobs[i].center = 0.5 * sin(hash3(h * 10086) * (10 + elapsedTime) * 0.00001);
-        blobs[i].radius = 0.5 + 0.1 * sin(hash1(h * 12121) * (10 + elapsedTime) * 0.000001);
+        blobs[i].center = 1 * sin(hash3(h * 10086) * (10 + elapsedTime) * 0.00001);
+        blobs[i].radius = 0.2 + 0.2 * sin(hash1(h * 12121) * (10 + elapsedTime) * 0.000001);
     }
 }
 
@@ -272,7 +271,6 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
     UINT groupNum = 0;
     DivideGroups(blobs, blobsTmin, blobsTmax, groups, nActiveMetaballs, groupNum);
 
-    //**test**by zsym
     UINT MAX_STEPS = 128;
 
     for (UINT curGroupIdx = 0; curGroupIdx < groupNum; ++curGroupIdx) {

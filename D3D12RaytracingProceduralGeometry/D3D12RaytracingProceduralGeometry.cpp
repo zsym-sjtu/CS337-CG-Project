@@ -115,7 +115,7 @@ void D3D12RaytracingProceduralGeometry::UpdateAABBPrimitiveAttributes(float anim
     XMMATRIX mScale2 = XMMatrixScaling(2, 2, 2);
     XMMATRIX mScale3 = XMMatrixScaling(3, 3, 3);
 
-    XMMATRIX mRotation = XMMatrixRotationY(0 * animationTime);//**edit** +:clockwise // -:anti-clockwise
+    XMMATRIX mRotation = XMMatrixRotationY(0 * animationTime);//**knob** +:clockwise // -:anti-clockwise
 
     // Apply scale, rotation and translation transforms.
     // The intersection shader tests in this sample work with local space, so here
@@ -188,8 +188,8 @@ void D3D12RaytracingProceduralGeometry::InitializeScene()
     // Setup camera.
     {
         // Initialize the view and projection inverse matrices.
-        m_eye = { 0.0f, 5.3f, -17.0f, 1.0f }; 
-        m_at = { 0.0f, 0.0f, 0.0f, 100.0f };
+        m_eye = { 0.0f, 4.0f, -15.0f, 1.0f };
+        m_at = { 0.0f, 0.0f, 0.0f, 1.0f }; 
         XMVECTOR right = { 1.0f, 0.0f, 0.0f, 0.0f };
 
         XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
