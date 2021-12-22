@@ -35,8 +35,6 @@ struct Group
 {
     UINT head;
     UINT tail;
-    float near;
-    float far;
     float tmin;
     float tmax;
 };
