@@ -35,8 +35,6 @@ struct Group
 {
     UINT head;
     UINT tail;
-    float near;
-    float far;
     float tmin;
     float tmax;
 };
@@ -139,17 +137,17 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
 //    // Metaball field radii of max influence
 //    float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25 };
 //
-#if N_METABALLS == 5
-    float3 keyFrameCenters[N_METABALLS][2] =
-    {
-        { float3(-0.7, 0, 0), float3(0.7,0, 0) },
-        { float3(0.7 , 0, 0), float3(-0.7, 0, 0) },
-        { float3(0, -0.7, 0), float3(0, 0.7, 0) },
-        { float3(0, 0, 0), float3(0, 0, 0) },
-        { float3(0, 0, 0.3), float3(0.6, 0.2, 0) }
-    };
-    // Metaball field radii of max influence
-    float radii[N_METABALLS] = { 0.35, 0.35, 0.25, 0.35, 0.4 };
+//#if N_METABALLS == 5
+//    float3 keyFrameCenters[N_METABALLS][2] =
+//    {
+//        { float3(-0.7, 0, 0), float3(0.7,0, 0) },
+//        { float3(0.7 , 0, 0), float3(-0.7, 0, 0) },
+//        { float3(0, -0.7, 0), float3(0, 0.7, 0) },
+//        { float3(0, 0, 0), float3(0, 0, 0) },
+//        { float3(0, 0, 0.3), float3(0.6, 0.2, 0) }
+//    };
+//    // Metaball field radii of max influence
+//    float radii[N_METABALLS] = { 0.35, 0.35, 0.25, 0.35, 0.4 };
 //
 //#if N_METABALLS == 6
 //    float3 keyFrameCenters[N_METABALLS][2] =
@@ -164,22 +162,22 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
 //    // Metaball field radii of max influence
 //    float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25, 0.4 };
 
-    //#if N_METABALLS == 10
-    //float3 keyFrameCenters[N_METABALLS][2] =
-    //{
-    //    { float3(-0.5, 0, 0),float3(0, 0.5, 0) },
-    //    { float3(0.7, 0, 0), float3(-0.7, 0, 0) },
-    //    { float3(0, -0.7, 0),float3(0, 0.3, 0) },
-    //    { float3(0, 0.1, 0), float3(0, -0.6, 0) },
-    //    { float3(0, 0, 0),   float3(0, 0, 1) },
-    //    { float3(0, 0, 0.3),float3(0.6, 0.2, 0) },
-    //    { float3(0, 0, 0.3), float3(0.2, 0, 0) },
-    //    { float3(0, 0.3, 0),float3(-0.5, 0.3, 0) },
-    //    { float3(0, -0.1, 0.2), float3(0, 0.6, 0) },
-    //    { float3(1, 0, 0),   float3(0, 0, 0.1) }
-    //};
-    //// Metaball field radii of max influence
-    //float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25, 0.35, 0.35, 0.35, 0.35, 0.25 };
+    #if N_METABALLS == 10
+    float3 keyFrameCenters[N_METABALLS][2] =
+    {
+        { float3(-0.5, 0, 0),float3(0, 0.5, 0) },
+        { float3(0.7, 0, 0), float3(-0.7, 0, 0) },
+        { float3(0, -0.7, 0),float3(0, 0.3, 0) },
+        { float3(0, 0.1, 0), float3(0, -0.6, 0) },
+        { float3(0, 0, 0),   float3(0, 0, 1) },
+        { float3(0, 0, 0.3),float3(0.6, 0.2, 0) },
+        { float3(0, 0, 0.3), float3(0.2, 0, 0) },
+        { float3(0, 0.3, 0),float3(-0.5, 0.3, 0) },
+        { float3(0, -0.1, 0.2), float3(0, 0.6, 0) },
+        { float3(1, 0, 0),   float3(0, 0, 0.1) }
+    };
+    // Metaball field radii of max influence
+    float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25, 0.35, 0.35, 0.35, 0.35, 0.25 };
 
 #else
     float3 keyFrameCenters[N_METABALLS][2] =
@@ -207,8 +205,7 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
 // Find all metaballs that ray intersects.
 // The passed in array is sorted to the first nActiveMetaballs.
 void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout Metaball blobs[N_METABALLS], \
-    inout float centerDistance[N_METABALLS], out float blobsTmin[N_METABALLS], out float blobsTmax[N_METABALLS], \
-    out UINT nActiveMetaballs)
+    out float blobsTmin[N_METABALLS], out float blobsTmax[N_METABALLS], out UINT nActiveMetaballs)
 {
     // Find the entry and exit points for all metaball bounding spheres combined.
     tmin = INFINITY;
@@ -224,7 +221,6 @@ void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout
             tmax = max(_tmax, tmax);
 #if LIMIT_TO_ACTIVE_METABALLS
             blobs[nActiveMetaballs] = blobs[i];
-            centerDistance[nActiveMetaballs] = centerDistance[i];
             blobsTmin[nActiveMetaballs] = _thit;
             blobsTmax[nActiveMetaballs] = _tmax;
             nActiveMetaballs++;
@@ -239,34 +235,57 @@ void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout
     tmax = min(tmax, RayTCurrent());
 }
 
-// This function uses STATIC LOOPS, is called before FindIntersectingMetaballs().
-void SortMetaballsByDistance(in Ray ray, inout Metaball blobs[N_METABALLS], out float centerDistance[N_METABALLS])
+// Compare blobs by tmin and tmax. Return 1 when the first blob (index in blobs[]) is `smaller` than the second.
+bool CompareBlobsByT(in float  aTmin, in float aTmax, in float bTmin, in float bTmax)
 {
-    for (UINT k = 0; k < N_METABALLS; k++)
+    if (aTmin < bTmin)
+        return true;
+    if (aTmin > bTmin)
+        return false;
+    if (aTmax < bTmax)
+        return true;
+    return false;
+}
+
+// This function uses STATIC LOOPS
+void SortMetaballsByTminTmax(in Ray ray, inout Metaball blobs[N_METABALLS], inout float blobsTmin[N_METABALLS], \
+    inout float blobsTmax[N_METABALLS], in UINT nActiveMetaballs)
+{
+    // Set tmin & tmax of irrelevant blobs (index >= nActiveMetaballs) to INFINITY
+#if USE_DYNAMIC_LOOPS
+    for (UINT i = nActiveMetaballs; i < N_METABALLS; i++)
     {
-        float3 originToMetaballCenter = blobs[k].center - ray.origin;
-        centerDistance[k] = dot(originToMetaballCenter, normalize(ray.direction));
+        blobsTmin[i] = INFINITY;
+        blobsTmax[i] = INFINITY;
     }
+#endif
 
     // Bubble sort, dual-loop version
     for (UINT i = 0; i < N_METABALLS - 1; i++)
     {
+        bool flag = true;
         for (UINT j = 0; j < N_METABALLS - 1 - i; j++)
         {
-            if (centerDistance[j] > centerDistance[j + 1])
+            if (CompareBlobsByT(blobsTmin[j + 1], blobsTmax[j + 1], blobsTmin[j], blobsTmax[j]))
             {
-                swap(centerDistance[j], centerDistance[j + 1]);
-
                 Metaball tmpB = blobs[j];
                 blobs[j] = blobs[j + 1];
                 blobs[j + 1] = tmpB;
+
+                swap(blobsTmin[j], blobsTmin[j + 1]);
+                swap(blobsTmax[j], blobsTmax[j + 1]);
+
+                flag = false;
             }
         }
+
+        if (flag)
+            break;
     }
 }
 
-void DivideGroups(in float centerDistance[N_METABALLS], in Metaball blobs[N_METABALLS], \
-    in float blobsTmin[N_METABALLS], in float blobsTmax[N_METABALLS], \
+
+void DivideGroups(in Metaball blobs[N_METABALLS], in float blobsTmin[N_METABALLS], in float blobsTmax[N_METABALLS], \
     out Group groups[N_GROUPS], in UINT nActiveMetaballs, out UINT groupNum)
 {
     // Number of non-empty groups
@@ -278,49 +297,19 @@ void DivideGroups(in float centerDistance[N_METABALLS], in Metaball blobs[N_META
     for (UINT i = 0; i < N_METABALLS; i++)
 #endif
     {
-        // Whether the new blob should be added to current group
-        if ((groupNum > 0) && (((centerDistance[i] - blobs[i].radius) < groups[groupNum - 1].far) || (groupNum == N_GROUPS)))
+        if ((groupNum > 0) && (blobsTmin[i] < groups[groupNum - 1].tmax) || (groupNum == N_GROUPS))
         {
-            // Append the new blob into current group
             groups[groupNum - 1].tail = i;
-            groups[groupNum - 1].far = max(groups[groupNum - 1].far, (centerDistance[i] + blobs[i].radius));
-            groups[groupNum - 1].tmin = min(groups[groupNum - 1].tmin, blobsTmin[i]);
-            groups[groupNum - 1].tmax = max(groups[groupNum - 1].tmax, blobsTmax[i]);
-
-            if ((centerDistance[i] - blobs[i].radius) < groups[groupNum - 1].near)
-            { 
-                // The new blob refreshes the group's `near`
-                groups[groupNum - 1].near = centerDistance[i] - blobs[i].radius;
-
-                while (groupNum > 1)
-                { 
-                    // Whether the new `near` leads to overlapping of former groups
-                    if (groups[groupNum - 2].far > groups[groupNum - 1].near)
-                    { 
-                        // Decrement group counter
-                        --groupNum;
-                        // Merge two groups
-                        groups[groupNum - 1].tail = groups[groupNum].tail;
-                        groups[groupNum - 1].far = groups[groupNum].far;
-                        groups[groupNum - 1].tmin = min(groups[groupNum - 1].tmin, groups[groupNum].tmin);
-                        groups[groupNum - 1].tmax = max(groups[groupNum - 1].tmax, groups[groupNum].tmax);
-                    }
-                }
-            }
+            groups[groupNum - 1].tmax = blobsTmax[i];
         }
-
-        // Create a new group
         else
         {
             groups[groupNum].head = i;
             groups[groupNum].tail = i;
-            groups[groupNum].near = centerDistance[i] - blobs[i].radius;
-            groups[groupNum].far = centerDistance[i] + blobs[i].radius;
             groups[groupNum].tmin = blobsTmin[i];
             groups[groupNum].tmax = blobsTmax[i];
             ++groupNum;
         }
-            
     }
 }
 
@@ -331,23 +320,22 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
     Metaball blobs[N_METABALLS];
     InitializeAnimatedMetaballs(blobs, elapsedTime, 12.0f);
 
-    float centerDistance[N_METABALLS];
-    SortMetaballsByDistance(ray, blobs, centerDistance);
     
     float tmin, tmax;   // Ray extents to first and last metaball intersections.
     UINT nActiveMetaballs = 0;  // Number of metaballs's that the ray intersects.
     
     float blobsTmin[N_METABALLS];
     float blobsTmax[N_METABALLS];
-    FindIntersectingMetaballs(ray, tmin, tmax, blobs, centerDistance, blobsTmin, blobsTmax, nActiveMetaballs);
+    FindIntersectingMetaballs(ray, tmin, tmax, blobs, blobsTmin, blobsTmax, nActiveMetaballs);
 
+    SortMetaballsByTminTmax(ray, blobs, blobsTmin, blobsTmax, nActiveMetaballs);
 
     Group groups[N_GROUPS];
     UINT groupNum = 0;
-    DivideGroups(centerDistance, blobs, blobsTmin, blobsTmax, groups, nActiveMetaballs, groupNum);
+    DivideGroups(blobs, blobsTmin, blobsTmax, groups, nActiveMetaballs, groupNum);
 
     //**test**by zsym
-    UINT MAX_STEPS = 64;
+    UINT MAX_STEPS = 128;
 
     for (UINT curGroupIdx = 0; curGroupIdx < groupNum; ++curGroupIdx) {
         float groupTmin = groups[curGroupIdx].tmin;
