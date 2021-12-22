@@ -33,7 +33,7 @@ typedef UINT16 Index;
 #define N_GROUPS 5
 
 // Number of metaballs to use within an AABB.
-#define N_METABALLS 5    // = {3, 5}, or others (need edit)
+#define N_METABALLS 10    // = {3, 5}, or others (need edit)
 
 // Limitting calculations only to metaballs a ray intersects can speed up raytracing
 // dramatically particularly when there is a higher number of metaballs used. 
