@@ -115,7 +115,7 @@ void D3D12RaytracingProceduralGeometry::UpdateAABBPrimitiveAttributes(float anim
     XMMATRIX mScale2 = XMMatrixScaling(2, 2, 2);
     XMMATRIX mScale3 = XMMatrixScaling(3, 3, 3);
 
-    XMMATRIX mRotation = XMMatrixRotationY(-2 * animationTime);//**edit** +:clockwise // -:anti-clockwise
+    XMMATRIX mRotation = XMMatrixRotationY(0 * animationTime);//**edit** +:clockwise // -:anti-clockwise
 
     // Apply scale, rotation and translation transforms.
     // The intersection shader tests in this sample work with local space, so here

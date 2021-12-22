@@ -120,85 +120,23 @@ float3 CalculateGroupMetaballsNormal(in float3 position, in Metaball blobs[N_MET
         CalculateGroupMetaballsPotential(position + float3(0, 0, e), blobs, head, tail)));
 }
 
+float hash1(float n)
+{
+    return sin(n) * 43758.5453123;
+}
+
+float3 hash3(float n)
+{
+    return sin(float3(n, n + 1.0, n + 2.0)) * float3(43758.5453123, 22578.1459123, 19642.3490423);
+}
+
 void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elapsedTime, in float cycleDuration)
 {
-
-
-    // Metaball centers at t0 and t1 key frames.
-//#if N_METABALLS == 5
-//    float3 keyFrameCenters[N_METABALLS][2] =
-//    {
-//        { float3(-0.7, 0, 0),float3(0.7,0, 0) },
-//        { float3(0.7 , 0, 0), float3(-0.7, 0, 0) },
-//        { float3(0, -0.7, 0),float3(0, 0.7, 0) },
-//        { float3(0, 0.7, 0), float3(0, -0.7, 0) },
-//        { float3(0, 0, 0),   float3(0, 0, 0) }
-//    };
-//    // Metaball field radii of max influence
-//    float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25 };
-//
-//#if N_METABALLS == 5
-//    float3 keyFrameCenters[N_METABALLS][2] =
-//    {
-//        { float3(-0.7, 0, 0), float3(0.7,0, 0) },
-//        { float3(0.7 , 0, 0), float3(-0.7, 0, 0) },
-//        { float3(0, -0.7, 0), float3(0, 0.7, 0) },
-//        { float3(0, 0, 0), float3(0, 0, 0) },
-//        { float3(0, 0, 0.3), float3(0.6, 0.2, 0) }
-//    };
-//    // Metaball field radii of max influence
-//    float radii[N_METABALLS] = { 0.35, 0.35, 0.25, 0.35, 0.4 };
-//
-//#if N_METABALLS == 6
-//    float3 keyFrameCenters[N_METABALLS][2] =
-//    {
-//        { float3(-0.7, 0, 0), float3(0.7,0, 0) },
-//        { float3(0.7 , 0, 0), float3(-0.7, 0, 0) },
-//        { float3(0, -0.7, 0), float3(0, 0.7, 0) },
-//        { float3(0, 0.7, 0), float3(0, -0.7, 0) },
-//        { float3(0, 0, 0), float3(0, 0, 0) },
-//        { float3(0, 0, 0.3), float3(0.6, 0.2, 0) }
-//    };
-//    // Metaball field radii of max influence
-//    float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25, 0.4 };
-
-    #if N_METABALLS == 10
-    float3 keyFrameCenters[N_METABALLS][2] =
+    for (UINT i = 0; i < N_METABALLS; ++i)
     {
-        { float3(-0.5, 0, 0),float3(0, 0.5, 0) },
-        { float3(0.7, 0, 0), float3(-0.7, 0, 0) },
-        { float3(0, -0.7, 0),float3(0, 0.3, 0) },
-        { float3(0, 0.1, 0), float3(0, -0.6, 0) },
-        { float3(0, 0, 0),   float3(0, 0, 1) },
-        { float3(0, 0, 0.3),float3(0.6, 0.2, 0) },
-        { float3(0, 0, 0.3), float3(0.2, 0, 0) },
-        { float3(0, 0.3, 0),float3(-0.5, 0.3, 0) },
-        { float3(0, -0.1, 0.2), float3(0, 0.6, 0) },
-        { float3(1, 0, 0),   float3(0, 0, 0.1) }
-    };
-    // Metaball field radii of max influence
-    float radii[N_METABALLS] = { 0.35, 0.35, 0.35, 0.35, 0.25, 0.35, 0.35, 0.35, 0.35, 0.25 };
-
-#else
-    float3 keyFrameCenters[N_METABALLS][2] =
-    {
-        //{ float3(-0.3, -0.3, -0.4),float3(0.3,-0.3,-0.0) },
-        //{ float3(0.0, -0.2, 0.5), float3(0.0, 0.4, 0.5) },
-        //{ float3(0.4,0.4, 0.4), float3(-0.4, 0.2, -0.4) }
-        { float3(0.0, 0.0, 0.0), float3(1.0, 0.0, 0.0) },
-        { float3(0.0, 0.0, 0.0), float3(0.0, 1.0, 0.0) },
-        { float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 1.0) }
-    };
-    // Metaball field radii of max influence
-    float radii[N_METABALLS] = { 0.40, 0.50, 0.60 };
-#endif
-
-    // Calculate animated metaball center positions.
-    float  tAnimate = CalculateAnimationInterpolant(elapsedTime, cycleDuration);
-    for (UINT j = 0; j < N_METABALLS; j++)
-    {
-        blobs[j].center = lerp(keyFrameCenters[j][0], keyFrameCenters[j][1], tAnimate);
-        blobs[j].radius = radii[j];
+        float h = float(i) / 8.0;
+        blobs[i].center = 0.5 * sin(hash3(h * 10086) * (10 + elapsedTime) * 0.00001);
+        blobs[i].radius = 0.5 + 0.1 * sin(hash1(h * 12121) * (10 + elapsedTime) * 0.000001);
     }
 }
 
@@ -253,10 +191,10 @@ void SortMetaballsByTminTmax(in Ray ray, inout Metaball blobs[N_METABALLS], inou
 {
     // Set tmin & tmax of irrelevant blobs (index >= nActiveMetaballs) to INFINITY
 #if USE_DYNAMIC_LOOPS
-    for (UINT i = nActiveMetaballs; i < N_METABALLS; i++)
+    for (UINT k = nActiveMetaballs; k < N_METABALLS; k++)
     {
-        blobsTmin[i] = INFINITY;
-        blobsTmax[i] = INFINITY;
+        blobsTmin[k] = INFINITY;
+        blobsTmax[k] = INFINITY;
     }
 #endif
 
@@ -297,7 +235,7 @@ void DivideGroups(in Metaball blobs[N_METABALLS], in float blobsTmin[N_METABALLS
     for (UINT i = 0; i < N_METABALLS; i++)
 #endif
     {
-        if ((groupNum > 0) && (blobsTmin[i] < groups[groupNum - 1].tmax) || (groupNum == N_GROUPS))
+        if (((groupNum > 0) && (blobsTmin[i] < groups[groupNum - 1].tmax)) || (groupNum == N_GROUPS))
         {
             groups[groupNum - 1].tail = i;
             groups[groupNum - 1].tmax = blobsTmax[i];
