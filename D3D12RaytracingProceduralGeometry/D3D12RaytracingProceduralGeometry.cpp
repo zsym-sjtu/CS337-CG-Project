@@ -34,11 +34,11 @@ const wchar_t* D3D12RaytracingProceduralGeometry::c_missShaderNames[] =
     L"MyMissShader", L"MyMissShader_ShadowRay"
 };
 // Hit groups.
-const wchar_t* D3D12RaytracingProceduralGeometry::c_hitGroupNames_TriangleGeometry[] = 
-{ 
-    L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay" 
+const wchar_t* D3D12RaytracingProceduralGeometry::c_hitGroupNames_TriangleGeometry[] =
+{
+    L"MyHitGroup_Triangle", L"MyHitGroup_Triangle_ShadowRay"
 };
-const wchar_t* D3D12RaytracingProceduralGeometry::c_hitGroupNames_AABBGeometry[][RayType::Count] = 
+const wchar_t* D3D12RaytracingProceduralGeometry::c_hitGroupNames_AABBGeometry[][RayType::Count] =
 {
     { L"MyHitGroup_AABB_AnalyticPrimitive", L"MyHitGroup_AABB_AnalyticPrimitive_ShadowRay" },
     { L"MyHitGroup_AABB_VolumetricPrimitive", L"MyHitGroup_AABB_VolumetricPrimitive_ShadowRay" },
@@ -102,35 +102,36 @@ void D3D12RaytracingProceduralGeometry::UpdateCameraMatrices()
     m_sceneCB->projectionToWorld = XMMatrixInverse(nullptr, viewProj);
 }
 
+//**AABB**
 // Update AABB primite attributes buffers passed into the shader.
 void D3D12RaytracingProceduralGeometry::UpdateAABBPrimitiveAttributes(float animationTime)
 {
     auto frameIndex = m_deviceResources->GetCurrentFrameIndex();
 
     XMMATRIX mIdentity = XMMatrixIdentity();
-    
+
     XMMATRIX mScale15y = XMMatrixScaling(1, 1.5, 1);
     XMMATRIX mScale15 = XMMatrixScaling(1.5, 1.5, 1.5);
     XMMATRIX mScale2 = XMMatrixScaling(2, 2, 2);
     XMMATRIX mScale3 = XMMatrixScaling(3, 3, 3);
 
-    XMMATRIX mRotation = XMMatrixRotationY(-2 * animationTime);//**edit** +:clockwise // -:anti-clockwise
+    XMMATRIX mRotation = XMMatrixRotationY(0 * animationTime);//**knob** +:clockwise // -:anti-clockwise
 
     // Apply scale, rotation and translation transforms.
     // The intersection shader tests in this sample work with local space, so here
     // we apply the BLAS object space translation that was passed to geometry descs.
     auto SetTransformForAABB = [&](UINT primitiveIndex, XMMATRIX& mScale, XMMATRIX& mRotation)
     {
-        XMVECTOR vTranslation = 
-            0.5f * ( XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&m_aabbs[primitiveIndex].MinX))
-                   + XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&m_aabbs[primitiveIndex].MaxX)));
+        XMVECTOR vTranslation =
+            0.5f * (XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&m_aabbs[primitiveIndex].MinX))
+                + XMLoadFloat3(reinterpret_cast<XMFLOAT3*>(&m_aabbs[primitiveIndex].MaxX)));
         XMMATRIX mTranslation = XMMatrixTranslationFromVector(vTranslation);
 
         XMMATRIX mTransform = mScale * mRotation * mTranslation;
         m_aabbPrimitiveAttributeBuffer[primitiveIndex].localSpaceToBottomLevelAS = mTransform;
         m_aabbPrimitiveAttributeBuffer[primitiveIndex].bottomLevelASToLocalSpace = XMMatrixInverse(nullptr, mTransform);
     };
-    
+
     UINT offset = 0;
 
     // Volumetric primitives.
@@ -149,13 +150,13 @@ void D3D12RaytracingProceduralGeometry::InitializeScene()
     // Setup materials.
     {
         auto SetAttributes = [&](
-            UINT primitiveIndex, 
-            const XMFLOAT4& albedo, 
+            UINT primitiveIndex,
+            const XMFLOAT4& albedo,
             float reflectanceCoef = 0.0f,
             float diffuseCoef = 0.9f,
             float specularCoef = 0.7f,
             float specularPower = 50.0f,
-            float stepScale = 1.0f )
+            float stepScale = 1.0f)
         {
             auto& attributes = m_aabbMaterialCB[primitiveIndex];
             attributes.albedo = albedo;
@@ -167,13 +168,13 @@ void D3D12RaytracingProceduralGeometry::InitializeScene()
         };
 
 
-        m_planeMaterialCB = { XMFLOAT4(0.9f, 0.9f, 0.9f, 1.0f), 0.25f, 1, 0.4f, 50, 1};
+        m_planeMaterialCB = { XMFLOAT4(0.9f, 0.9f, 0.9f, 1.0f), 0.25f, 1, 0.4f, 50, 1 };
 
         // Albedos
         XMFLOAT4 green = XMFLOAT4(0.1f, 1.0f, 0.5f, 1.0f);
         XMFLOAT4 red = XMFLOAT4(1.0f, 0.5f, 0.5f, 1.0f);
         XMFLOAT4 yellow = XMFLOAT4(1.0f, 1.0f, 0.5f, 1.0f);
-        
+
         UINT offset = 0;
 
         // Volumetric primitives.
@@ -187,8 +188,8 @@ void D3D12RaytracingProceduralGeometry::InitializeScene()
     // Setup camera.
     {
         // Initialize the view and projection inverse matrices.
-        m_eye = { 0.0f, 5.3f, -17.0f, 1.0f }; 
-        m_at = { 0.0f, 0.0f, 0.0f, 100.0f };
+        m_eye = { 0.0f, 4.0f, -15.0f, 1.0f };
+        m_at = { 0.0f, 0.0f, 0.0f, 1.0f };
         XMVECTOR right = { 1.0f, 0.0f, 0.0f, 0.0f };
 
         XMVECTOR direction = XMVector4Normalize(m_at - m_eye);
@@ -351,7 +352,7 @@ void D3D12RaytracingProceduralGeometry::CreateRaytracingInterfaces()
 void D3D12RaytracingProceduralGeometry::CreateDxilLibrarySubobject(CD3DX12_STATE_OBJECT_DESC* raytracingPipeline)
 {
     auto lib = raytracingPipeline->CreateSubobject<CD3DX12_DXIL_LIBRARY_SUBOBJECT>();
-    D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE((void *)g_pRaytracing, ARRAYSIZE(g_pRaytracing));
+    D3D12_SHADER_BYTECODE libdxil = CD3DX12_SHADER_BYTECODE((void*)g_pRaytracing, ARRAYSIZE(g_pRaytracing));
     lib->SetDXILLibrary(&libdxil);
     // Use default shader exports for a DXIL library/collection subobject ~ surface all shaders.
 }
@@ -547,8 +548,8 @@ void D3D12RaytracingProceduralGeometry::BuildProceduralGeometryAABBs()
         XMFLOAT3 stride = XMFLOAT3(c_aabbWidth + c_aabbDistance, c_aabbWidth + c_aabbDistance, c_aabbWidth + c_aabbDistance);
         auto InitializeAABB = [&](auto& offsetIndex, auto& size)
         {
-            return D3D12_RAYTRACING_AABB { 
-                basePosition.x + offsetIndex.x * stride.x, 
+            return D3D12_RAYTRACING_AABB{
+                basePosition.x + offsetIndex.x * stride.x,
                 basePosition.y + offsetIndex.y * stride.y,
                 basePosition.z + offsetIndex.z * stride.z,
                 basePosition.x + offsetIndex.x * stride.x + size.x,
@@ -566,7 +567,7 @@ void D3D12RaytracingProceduralGeometry::BuildProceduralGeometryAABBs()
             offset += VolumetricPrimitive::Count;
         }
 
-        AllocateUploadBuffer(device, m_aabbs.data(), m_aabbs.size()*sizeof(m_aabbs[0]), &m_aabbBuffer.resource);
+        AllocateUploadBuffer(device, m_aabbs.data(), m_aabbs.size() * sizeof(m_aabbs[0]), &m_aabbBuffer.resource);
     }
 }
 
@@ -618,7 +619,7 @@ void D3D12RaytracingProceduralGeometry::BuildGeometryDescsForBottomLevelAS(array
     {
         // Triangle bottom-level AS contains a single plane geometry.
         geometryDescs[BottomLevelASType::Triangle].resize(1);
-        
+
         // Plane geometry
         auto& geometryDesc = geometryDescs[BottomLevelASType::Triangle][0];
         geometryDesc = {};
@@ -664,7 +665,7 @@ AccelerationStructureBuffers D3D12RaytracingProceduralGeometry::BuildBottomLevel
 
     // Get the size requirements for the scratch and AS buffers.
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
-    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS &bottomLevelInputs = bottomLevelBuildDesc.Inputs;
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& bottomLevelInputs = bottomLevelBuildDesc.Inputs;
     bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
     bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
     bottomLevelInputs.Flags = buildFlags;
@@ -695,10 +696,10 @@ AccelerationStructureBuffers D3D12RaytracingProceduralGeometry::BuildBottomLevel
         bottomLevelBuildDesc.ScratchAccelerationStructureData = scratch->GetGPUVirtualAddress();
         bottomLevelBuildDesc.DestAccelerationStructureData = bottomLevelAS->GetGPUVirtualAddress();
     }
-    
+
     // Build the acceleration structure.
     m_dxrCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
-    
+
     AccelerationStructureBuffers bottomLevelASBuffers;
     bottomLevelASBuffers.accelerationStructure = bottomLevelAS;
     bottomLevelASBuffers.scratch = scratch;
@@ -707,10 +708,10 @@ AccelerationStructureBuffers D3D12RaytracingProceduralGeometry::BuildBottomLevel
 }
 
 template <class InstanceDescType, class BLASPtrType>
-void D3D12RaytracingProceduralGeometry::BuildBotomLevelASInstanceDescs(BLASPtrType *bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource)
+void D3D12RaytracingProceduralGeometry::BuildBotomLevelASInstanceDescs(BLASPtrType* bottomLevelASaddresses, ComPtr<ID3D12Resource>* instanceDescsResource)
 {
     auto device = m_deviceResources->GetD3DDevice();
-    
+
     vector<InstanceDescType> instanceDescs;
     instanceDescs.resize(NUM_BLAS);
 
@@ -734,11 +735,11 @@ void D3D12RaytracingProceduralGeometry::BuildBotomLevelASInstanceDescs(BLASPtrTy
 
         // Calculate transformation matrix.
         const XMVECTOR vBasePosition = vWidth * XMLoadFloat3(&XMFLOAT3(-0.35f, 0.0f, -0.35f));
-        
+
         // Scale in XZ dimensions.
         XMMATRIX mScale = XMMatrixScaling(fWidth.x, fWidth.y, fWidth.z);
         XMMATRIX mTranslation = XMMatrixTranslationFromVector(vBasePosition);
-        XMMATRIX mTransform = mScale * mTranslation;  
+        XMMATRIX mTransform = mScale * mTranslation;
         XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTransform);
     }
 
@@ -748,13 +749,13 @@ void D3D12RaytracingProceduralGeometry::BuildBotomLevelASInstanceDescs(BLASPtrTy
         auto& instanceDesc = instanceDescs[BottomLevelASType::AABB];
         instanceDesc = {};
         instanceDesc.InstanceMask = 1;
-        
+
         // Set hit group offset to beyond the shader records for the triangle AABB.
         instanceDesc.InstanceContributionToHitGroupIndex = BottomLevelASType::AABB * RayType::Count;
         instanceDesc.AccelerationStructure = bottomLevelASaddresses[BottomLevelASType::AABB];
 
         // Move all AABBS above the ground plane.
-        XMMATRIX mTranslation = XMMatrixTranslationFromVector(XMLoadFloat3(&XMFLOAT3(0, c_aabbWidth/2, 0)));
+        XMMATRIX mTranslation = XMMatrixTranslationFromVector(XMLoadFloat3(&XMFLOAT3(0, c_aabbWidth / 2, 0)));
         XMStoreFloat3x4(reinterpret_cast<XMFLOAT3X4*>(instanceDesc.Transform), mTranslation);
     }
     UINT64 bufferSize = static_cast<UINT64>(instanceDescs.size() * sizeof(instanceDescs[0]));
@@ -770,7 +771,7 @@ AccelerationStructureBuffers D3D12RaytracingProceduralGeometry::BuildTopLevelAS(
 
     // Get required sizes for an acceleration structure.
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
-    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS &topLevelInputs = topLevelBuildDesc.Inputs;
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& topLevelInputs = topLevelBuildDesc.Inputs;
     topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
     topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
     topLevelInputs.Flags = buildFlags;
@@ -805,7 +806,7 @@ AccelerationStructureBuffers D3D12RaytracingProceduralGeometry::BuildTopLevelAS(
         };
         BuildBotomLevelASInstanceDescs<D3D12_RAYTRACING_INSTANCE_DESC>(bottomLevelASaddresses, &instanceDescsResource);
     }
-    
+
     // Top-level AS desc
     {
         topLevelBuildDesc.DestAccelerationStructureData = topLevelAS->GetGPUVirtualAddress();
@@ -815,7 +816,7 @@ AccelerationStructureBuffers D3D12RaytracingProceduralGeometry::BuildTopLevelAS(
 
     // Build acceleration structure.
     m_dxrCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
-    
+
     AccelerationStructureBuffers topLevelASBuffers;
     topLevelASBuffers.accelerationStructure = topLevelAS;
     topLevelASBuffers.instanceDesc = instanceDescsResource;
@@ -858,7 +859,7 @@ void D3D12RaytracingProceduralGeometry::BuildAccelerationStructures()
 
     // Build top-level AS.
     AccelerationStructureBuffers topLevelAS = BuildTopLevelAS(bottomLevelAS);
-    
+
     // Kick off acceleration structure construction.
     m_deviceResources->ExecuteCommandList();
 
@@ -903,9 +904,9 @@ void D3D12RaytracingProceduralGeometry::BuildShaderTables()
             shaderIdToStringMap[hitGroupShaderIDs_TriangleGeometry[i]] = c_hitGroupNames_TriangleGeometry[i];
         }
         for (UINT r = 0; r < IntersectionShaderType::Count; r++)
-            for (UINT c = 0; c < RayType::Count; c++)        
+            for (UINT c = 0; c < RayType::Count; c++)
             {
-                hitGroupShaderIDs_AABBGeometry[r][c] = stateObjectProperties->GetShaderIdentifier(c_hitGroupNames_AABBGeometry[r][c]); 
+                hitGroupShaderIDs_AABBGeometry[r][c] = stateObjectProperties->GetShaderIdentifier(c_hitGroupNames_AABBGeometry[r][c]);
                 shaderIdToStringMap[hitGroupShaderIDs_AABBGeometry[r][c]] = c_hitGroupNames_AABBGeometry[r][c];
             }
     };
@@ -921,15 +922,15 @@ void D3D12RaytracingProceduralGeometry::BuildShaderTables()
 
     /*************--------- Shader table layout -------*******************
     | --------------------------------------------------------------------
-    | Shader table - HitGroupShaderTable: 
+    | Shader table - HitGroupShaderTable:
     | [0] : MyHitGroup_Triangle
     | [1] : MyHitGroup_Triangle_ShadowRay
     | [2] : MyHitGroup_AABB_AnalyticPrimitive
-    | [3] : MyHitGroup_AABB_AnalyticPrimitive_ShadowRay 
+    | [3] : MyHitGroup_AABB_AnalyticPrimitive_ShadowRay
     | ...
     | [6] : MyHitGroup_AABB_VolumetricPrimitive
     | [7] : MyHitGroup_AABB_VolumetricPrimitive_ShadowRay
-    | [8] : MyHitGroup_AABB_SignedDistancePrimitive 
+    | [8] : MyHitGroup_AABB_SignedDistancePrimitive
     | [9] : MyHitGroup_AABB_SignedDistancePrimitive_ShadowRay,
     | ...
     | [20] : MyHitGroup_AABB_SignedDistancePrimitive
@@ -937,17 +938,17 @@ void D3D12RaytracingProceduralGeometry::BuildShaderTables()
     | --------------------------------------------------------------------
     **********************************************************************/
 
-     // RayGen shader table.
+    // RayGen shader table.
     {
         UINT numShaderRecords = 1;
         UINT shaderRecordSize = shaderIDSize; // No root arguments
-        
-        ShaderTable rayGenShaderTable(device, numShaderRecords, shaderRecordSize, L"RayGenShaderTable" );
+
+        ShaderTable rayGenShaderTable(device, numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
         rayGenShaderTable.push_back(ShaderRecord(rayGenShaderID, shaderRecordSize, nullptr, 0));
         rayGenShaderTable.DebugPrint(shaderIdToStringMap);
         m_rayGenShaderTable = rayGenShaderTable.GetResource();
     }
-    
+
     // Miss shader table.
     {
         UINT numShaderRecords = RayType::Count;
@@ -979,7 +980,7 @@ void D3D12RaytracingProceduralGeometry::BuildShaderTables()
                 hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderID, shaderIDSize, &rootArgs, sizeof(rootArgs)));
             }
         }
-      
+
         // AABB geometry hit groups.
         {
             LocalRootSignature::AABB::RootArguments rootArgs;
@@ -989,14 +990,14 @@ void D3D12RaytracingProceduralGeometry::BuildShaderTables()
             for (UINT iShader = 0, instanceIndex = 0; iShader < IntersectionShaderType::Count; iShader++)
             {
                 UINT numPrimitiveTypes = IntersectionShaderType::PerPrimitiveTypeCount(static_cast<IntersectionShaderType::Enum>(iShader));
-                
+
                 // Primitives for each intersection shader.
                 for (UINT primitiveIndex = 0; primitiveIndex < numPrimitiveTypes; primitiveIndex++, instanceIndex++)
                 {
                     rootArgs.materialCb = m_aabbMaterialCB[instanceIndex];
                     rootArgs.aabbCB.instanceIndex = instanceIndex;
                     rootArgs.aabbCB.primitiveType = primitiveIndex;
-                    
+
                     // Ray types.
                     for (UINT r = 0; r < RayType::Count; r++)
                     {
@@ -1022,7 +1023,7 @@ void D3D12RaytracingProceduralGeometry::OnKeyDown(UINT8 key)
     case 'G':
         m_animateGeometry = !m_animateGeometry;
         break;
-    case 'L': 
+    case 'L':
         m_animateLight = !m_animateLight;
         break;
     }
@@ -1278,10 +1279,10 @@ void D3D12RaytracingProceduralGeometry::CalculateFrameStats()
         prevTime = totalTime;
         float raytracingTime = static_cast<float>(m_gpuTimers[GpuTimers::Raytracing].GetElapsedMS());
         float MRaysPerSecond = NumMRaysPerSecond(m_width, m_height, raytracingTime);
-        
+
         wstringstream windowText;
         windowText << setprecision(2) << fixed
-            << L"    fps: " << fps 
+            << L"    fps: " << fps
             << L"    DispatchRays(): " << raytracingTime << "ms"
             << L"     ~Million Primary Rays/s: " << MRaysPerSecond
             << L"    GPU[" << m_deviceResources->GetAdapterID() << L"]: " << m_deviceResources->GetAdapterDescription();
@@ -1310,7 +1311,7 @@ UINT D3D12RaytracingProceduralGeometry::AllocateDescriptor(D3D12_CPU_DESCRIPTOR_
     auto descriptorHeapCpuBase = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
     if (descriptorIndexToUse >= m_descriptorHeap->GetDesc().NumDescriptors)
     {
-        ThrowIfFalse(m_descriptorsAllocated < m_descriptorHeap->GetDesc().NumDescriptors, L"Ran out of descriptors on the heap!" );
+        ThrowIfFalse(m_descriptorsAllocated < m_descriptorHeap->GetDesc().NumDescriptors, L"Ran out of descriptors on the heap!");
         descriptorIndexToUse = m_descriptorsAllocated++;
     }
     *cpuDescriptor = CD3DX12_CPU_DESCRIPTOR_HANDLE(descriptorHeapCpuBase, descriptorIndexToUse, m_descriptorSize);
