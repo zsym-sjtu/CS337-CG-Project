@@ -135,7 +135,7 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
     {
         float h = float(i) / 8.0;
         blobs[i].center = 1 * sin(hash3(h * 10086) * (10 + elapsedTime) * 0.00001);
-        blobs[i].radius = 0.2 + 0.2 * sin(hash1(h * 12121) * (10 + elapsedTime) * 0.000001);
+        blobs[i].radius = 0.2 + 0.1 * sin(hash1(h * 12121) * (10 + elapsedTime) * 0.000001);
     }
 }
 
