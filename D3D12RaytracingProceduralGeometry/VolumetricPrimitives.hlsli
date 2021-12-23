@@ -167,6 +167,11 @@ void FindIntersectingMetaballs(in Ray ray, out float tmin, out float tmax, inout
             blobsTmax[i] = _tmax;
 #endif
         }
+        else
+        {
+            blobsTmin[i] = INFINITY;
+            blobsTmax[i] = -INFINITY;
+        }
     }
     tmin = max(tmin, RayTMin());
     tmax = min(tmax, RayTCurrent());
@@ -193,7 +198,7 @@ void SortMetaballsByTminTmax(in Ray ray, inout Metaball blobs[N_METABALLS], inou
     for (UINT k = nActiveMetaballs; k < N_METABALLS; k++)
     {
         blobsTmin[k] = INFINITY;
-        blobsTmax[k] = INFINITY;
+        blobsTmax[k] = -INFINITY;
     }
 #endif
 
@@ -237,7 +242,7 @@ void DivideGroups(in Metaball blobs[N_METABALLS], in float blobsTmin[N_METABALLS
         if (((groupNum > 0) && (blobsTmin[i] < groups[groupNum - 1].tmax)) || (groupNum == N_GROUPS))
         {
             groups[groupNum - 1].tail = i;
-            groups[groupNum - 1].tmax = blobsTmax[i];
+            groups[groupNum - 1].tmax = max(groups[groupNum - 1].tmax, blobsTmax[i]);
         }
         else
         {
