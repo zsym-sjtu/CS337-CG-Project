@@ -61,6 +61,9 @@ float CalculateMetaballPotential(in float3 position, in Metaball blob, out float
         return 6 * (d*d*d*d*d) / (r*r*r*r*r)
             - 15 * (d*d*d*d) / (r*r*r*r)
             + 10 * (d*d*d) / (r*r*r);
+
+        //float x = d / r;
+        //return x * x * x * (10 + x * (6 * x - 15));
     }
     return 0;
 }
