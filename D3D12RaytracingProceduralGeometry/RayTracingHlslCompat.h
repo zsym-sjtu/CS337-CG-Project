@@ -29,7 +29,6 @@ using namespace DirectX;
 typedef UINT16 Index;
 #endif
 
-//**knob**
 #define N_GROUPS 5
 
 // Number of metaballs to use within an AABB.
