@@ -151,16 +151,15 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
     float minTStep = (tmax - tmin) / (MAX_STEPS / 1);
     UINT iStep = 0;
 
-    float tStep = 0;//**test**
+    float tStep = 0;
 
-    //while (iStep++ < MAX_STEPS) 
-    while (t < tmax)//**test**
+    while (t < tmax)
     {
         float3 position = ray.origin + t * ray.direction;
         float fieldPotentials[N_METABALLS];    // Field potentials for each metaball.
         float sumFieldPotential = 0;           // Sum of all metaball field potentials.
             
-        float LipschitzConstant = 0; // track Lipschitz constant //**test**
+        float LipschitzConstant = 0; // track Lipschitz constant
         float deltaT = INFINITY;
         bool flag1 = 0;
 
@@ -175,7 +174,7 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
             fieldPotentials[j] = CalculateMetaballPotential(position, blobs[j], distance);
             sumFieldPotential += fieldPotentials[j];
 
-            if (distance < blobs[j].radius) //**test**
+            if (distance < blobs[j].radius)
             {
                 flag1 = true;
                 LipschitzConstant += 1.0 / blobs[j].radius;
@@ -191,7 +190,7 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
         // Threshold - valid range is (0, 1>, the larger the threshold the smaller the blob.
         const float Threshold = 0.25f;
 
-        if (flag1) //**test**
+        if (flag1)
             tStep = max(minTStep, 8 / 15 / LipschitzConstant * (Threshold - sumFieldPotential));
         else 
             tStep = max(deltaT, minTStep);
@@ -208,8 +207,7 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
                 return true;
             }
         }
-        //t += minTStep;
-        t += tStep;//**test**
+        t += tStep;
     }
 
     return false;
