@@ -151,10 +151,10 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
     float minTStep = (tmax - tmin) / (MAX_STEPS / 1);
     UINT iStep = 0;
 
-    //float tStep = 0;//**test**
+    float tStep = 0;//**test**
 
-    while (iStep++ < MAX_STEPS) 
-    //while (t < tmax)//**test**
+    //while (iStep++ < MAX_STEPS) 
+    while (t < tmax)//**test**
     {
         float3 position = ray.origin + t * ray.direction;
         float fieldPotentials[N_METABALLS];    // Field potentials for each metaball.
@@ -175,15 +175,15 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
             fieldPotentials[j] = CalculateMetaballPotential(position, blobs[j], distance);
             sumFieldPotential += fieldPotentials[j];
 
-            //if (distance < blobs[j].radius) //**test**
-            //{
-            //    flag1 = true;
-            //    LipschitzConstant += 1.0 / blobs[j].radius;
-            //}
-            //else
-            //{
-            //    deltaT = min(deltaT, distance - blobs[j].radius);
-            //}
+            if (distance < blobs[j].radius) //**test**
+            {
+                flag1 = true;
+                LipschitzConstant += 1.0 / blobs[j].radius;
+            }
+            else
+            {
+                deltaT = min(deltaT, distance - blobs[j].radius);
+            }
          }
 
 
@@ -191,10 +191,10 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
         // Threshold - valid range is (0, 1>, the larger the threshold the smaller the blob.
         const float Threshold = 0.25f;
 
-        //if (flag1) //**test**
-        //    tStep = max(minTStep, 8 / 15 / LipschitzConstant * (Threshold - sumFieldPotential));
-        //else 
-        //    tStep = max(deltaT, minTStep);
+        if (flag1) //**test**
+            tStep = max(minTStep, 8 / 15 / LipschitzConstant * (Threshold - sumFieldPotential));
+        else 
+            tStep = max(deltaT, minTStep);
 
 
         // Have we crossed the isosurface?
@@ -208,8 +208,8 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
                 return true;
             }
         }
-        t += minTStep;
-        //t += tStep;//**test**
+        //t += minTStep;
+        t += tStep;//**test**
     }
 
     return false;
