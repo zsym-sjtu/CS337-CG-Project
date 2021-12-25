@@ -47,14 +47,16 @@ float CalculateMetaballPotential(in float3 position, in Metaball blob, out float
         // The field function should return 1 at distance 0 from a center, and 1 at radius distance,
         // but this one gives f(0) = 0, f(radius) = 1, so we use the distance to radius instead.
         d = blob.radius - d;
-
         float r = blob.radius;
-        //return 6 * (d*d*d*d*d) / (r*r*r*r*r)
-        //    - 15 * (d*d*d*d) / (r*r*r*r)
-        //    + 10 * (d*d*d) / (r*r*r);
 
-        float x = d / r;
-        return x * x * x * (10 + x * (6 * x - 15));
+        // Original formula
+        return 6 * (d * d * d * d * d) / (r * r * r * r * r)
+            - 15 * (d * d * d * d) / (r * r * r * r)
+            + 10 * (d * d * d) / (r * r * r);
+
+        // Optimized formula
+        //float x = d / r;
+        //return x * x * x * (10 + x * (6 * x - 15));
     }
     return 0;
 }
