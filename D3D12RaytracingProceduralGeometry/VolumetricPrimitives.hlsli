@@ -49,9 +49,12 @@ float CalculateMetaballPotential(in float3 position, in Metaball blob, out float
         d = blob.radius - d;
 
         float r = blob.radius;
-        return 6 * (d*d*d*d*d) / (r*r*r*r*r)
-            - 15 * (d*d*d*d) / (r*r*r*r)
-            + 10 * (d*d*d) / (r*r*r);
+        //return 6 * (d*d*d*d*d) / (r*r*r*r*r)
+        //    - 15 * (d*d*d*d) / (r*r*r*r)
+        //    + 10 * (d*d*d) / (r*r*r);
+
+        float x = d / r;
+        return x * x * x * (10 + x * (6 * x - 15));
     }
     return 0;
 }
@@ -101,7 +104,7 @@ void InitializeAnimatedMetaballs(out Metaball blobs[N_METABALLS], in float elaps
     {
         float h = float(i) / 8.0;
         blobs[i].center = 1 * sin(hash3(h * 10086) * (10 + elapsedTime) * 0.00001);
-        blobs[i].radius = 0.2 + 0.2 * sin(hash1(h * 12121) * (10 + elapsedTime) * 0.000001);
+        blobs[i].radius = 0.2 + 0.1 * sin(hash1(h * 12121) * (10 + elapsedTime) * 0.000001);
     }
 }
 
@@ -148,12 +151,19 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
     float minTStep = (tmax - tmin) / (MAX_STEPS / 1);
     UINT iStep = 0;
 
-    while (iStep++ < MAX_STEPS)
+    //float tStep = 0;//**test**
+
+    while (iStep++ < MAX_STEPS) 
+    //while (t < tmax)//**test**
     {
         float3 position = ray.origin + t * ray.direction;
         float fieldPotentials[N_METABALLS];    // Field potentials for each metaball.
         float sumFieldPotential = 0;           // Sum of all metaball field potentials.
             
+        float LipschitzConstant = 0; // track Lipschitz constant //**test**
+        float deltaT = INFINITY;
+        bool flag1 = 0;
+
         // Calculate field potentials from all metaballs.
 #if USE_DYNAMIC_LOOPS
         for (UINT j = 0; j < nActiveMetaballs; j++)
@@ -164,14 +174,31 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
             float distance;
             fieldPotentials[j] = CalculateMetaballPotential(position, blobs[j], distance);
             sumFieldPotential += fieldPotentials[j];
+
+            //if (distance < blobs[j].radius) //**test**
+            //{
+            //    flag1 = true;
+            //    LipschitzConstant += 1.0 / blobs[j].radius;
+            //}
+            //else
+            //{
+            //    deltaT = min(deltaT, distance - blobs[j].radius);
+            //}
          }
+
 
         // Field potential threshold defining the isosurface.
         // Threshold - valid range is (0, 1>, the larger the threshold the smaller the blob.
         const float Threshold = 0.25f;
 
+        //if (flag1) //**test**
+        //    tStep = max(minTStep, 8 / 15 / LipschitzConstant * (Threshold - sumFieldPotential));
+        //else 
+        //    tStep = max(deltaT, minTStep);
+
+
         // Have we crossed the isosurface?
-        if (sumFieldPotential >= Threshold)
+        if (sumFieldPotential >= Threshold )
         {
             float3 normal = CalculateMetaballsNormal(position, blobs, nActiveMetaballs);
             if (IsAValidHit(ray, t, normal))
@@ -182,6 +209,7 @@ bool RayMetaballsIntersectionTest(in Ray ray, out float thit, out ProceduralPrim
             }
         }
         t += minTStep;
+        //t += tStep;//**test**
     }
 
     return false;
